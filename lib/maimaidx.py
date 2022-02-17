@@ -4,7 +4,7 @@ Version: 1.0
 Autor: Renhetian
 Date: 2022-02-17 17:56:19
 LastEditors: Renhetian
-LastEditTime: 2022-02-17 23:00:57
+LastEditTime: 2022-02-17 23:13:50
 '''
 
 from collections import defaultdict
@@ -224,9 +224,9 @@ async def choub(message: MessageChain, app: Ariadne, group: Group, member: Membe
         ]))
 
 
-@bcc.receiver("GroupMessage", decorators=[MatchRegex(regex=r"^/maimai 查歌.+")])
+@bcc.receiver("GroupMessage", decorators=[MatchRegex(regex=r"^/maimai 查歌 .+")])
 async def chage2(message: MessageChain, app: Ariadne, group: Group, member: Member):
-    regex = "查歌(.+)"
+    regex = "查歌 (.+)"
     name = re.match(regex, str(message.asDisplay())).groups()[0].strip()
     if name == "":
         return
@@ -249,7 +249,7 @@ async def chage2(message: MessageChain, app: Ariadne, group: Group, member: Memb
 
 
 @bcc.receiver("GroupMessage", decorators=[MatchRegex(regex=r"^/maimai 随个(?:dx|sd|标准)?[绿黄红紫白]?[0-9]+\+?")])
-async def fenshuxian(message: MessageChain, app: Ariadne, group: Group, member: Member):
+async def suige(message: MessageChain, app: Ariadne, group: Group, member: Member):
     regex = r"随个((?:dx|sd|标准))?([绿黄红紫白]?)([0-9]+\+?)"
     res = re.match(regex, message.asDisplay().lower())
     try:

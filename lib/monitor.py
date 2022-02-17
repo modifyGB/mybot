@@ -109,76 +109,61 @@ async def live(event: LiveEvent):
 @bcc.receiver("GroupMessage", decorators=[DetectPrefix('/monitor')])
 async def monitor_handle(message: MessageChain, app: Ariadne, group: Group, member: Member):
     list = message.asDisplay().split(' ')
-    if len(list) == 1:
-        await app.sendGroupMessage(group, MessageChain.create([
-            Plain('--help           查看帮助文档\n'),
-            Plain('--add-dynamic    关注动态\n'),
-            Plain('--remove-dynamic 取关动态\n'),
-            Plain('--list-dynamic   查看动态关注列表\n'),
-            Plain('--add-live       关注动态\n'),
-            Plain('--remove-live    取关动态\n'),
-            Plain('--list-live      查看动态关注列表\n')
-        ]))
-    else:
-        if list[1] == '--help':
-            await app.sendGroupMessage(group, MessageChain.create([
-                Plain('傻了吧，👴还没写')
-            ]))
 
-        elif list[1] == '--add-dynamic' and len(list) > 2 and list[2].isdigit():
-            if list[2] not in group_dict['dynamic']:
-                group_dict['dynamic'][list[2]] = []
-                Thread(target=dynamic_thread,args=(list[2],)).start()
-            if group.id not in group_dict['dynamic'][list[2]]:
-                group_dict['dynamic'][list[2]].append(group.id)
-            await app.sendGroupMessage(group, MessageChain.create([Plain('关注成功')]))
+    if list[1] == '--add-dynamic' and len(list) > 2 and list[2].isdigit():
+        if list[2] not in group_dict['dynamic']:
+            group_dict['dynamic'][list[2]] = []
+            Thread(target=dynamic_thread,args=(list[2],)).start()
+        if group.id not in group_dict['dynamic'][list[2]]:
+            group_dict['dynamic'][list[2]].append(group.id)
+        await app.sendGroupMessage(group, MessageChain.create([Plain('关注成功')]))
+        update()
+    elif list[1] == '--remove-dynamic' and len(list) > 2 and list[2].isdigit():
+        if list[2] in group_dict['dynamic'].keys() and group.id in group_dict['dynamic'][list[2]]:
+            group_dict['dynamic'][list[2]].remove(group.id)
             update()
-        elif list[1] == '--remove-dynamic' and len(list) > 2 and list[2].isdigit():
-            if list[2] in group_dict['dynamic'].keys() and group.id in group_dict['dynamic'][list[2]]:
-                group_dict['dynamic'][list[2]].remove(group.id)
-                update()
-            await app.sendGroupMessage(group, MessageChain.create([Plain('移除成功')]))
-        elif list[1] == '--list-dynamic':
-            add_list = []
-            for i in group_dict['dynamic'].keys():
-                if group.id in group_dict['dynamic'][i]:
-                    add_list.append(i)
-            if len(add_list):
-                await app.sendGroupMessage(group, MessageChain.join(
-                    MessageChain.create([Plain('dynamic关注id列表:\n')]),
-                    MessageChain.create([Plain(i+'\n') for i in add_list])
-                    ))
-            else:
-                await app.sendGroupMessage(group, MessageChain.create([Plain('没有关注任何人')]))
-
-        elif list[1] == '--add-live' and len(list) > 2 and list[2].isdigit():
-            if list[2] not in group_dict['live']:
-                group_dict['live'][list[2]] = []
-                Thread(target=live_thread,args=(list[2],)).start()
-            if group.id not in group_dict['live'][list[2]]:
-                group_dict['live'][list[2]].append(group.id)
-            await app.sendGroupMessage(group, MessageChain.create([Plain('关注成功')]))
-            update()
-        elif list[1] == '--remove-live' and len(list) > 2 and list[2].isdigit():
-            if list[2] in group_dict['live'].keys() and group.id in group_dict['live'][list[2]]:
-                group_dict['live'][list[2]].remove(group.id)
-                update()
-            await app.sendGroupMessage(group, MessageChain.create([Plain('移除成功')]))
-        elif list[1] == '--list-live':
-            add_list = []
-            for i in group_dict['live'].keys():
-                if group.id in group_dict['live'][i]:
-                    add_list.append(i)
-            if len(add_list):
-                await app.sendGroupMessage(group, MessageChain.join(
-                    MessageChain.create([Plain('live关注id列表:\n')]),
-                    MessageChain.create([Plain(i+'\n') for i in add_list])
-                    ))
-            else:
-                await app.sendGroupMessage(group, MessageChain.create([Plain('没有关注任何人')]))
-
+        await app.sendGroupMessage(group, MessageChain.create([Plain('移除成功')]))
+    elif list[1] == '--list-dynamic':
+        add_list = []
+        for i in group_dict['dynamic'].keys():
+            if group.id in group_dict['dynamic'][i]:
+                add_list.append(i)
+        if len(add_list):
+            await app.sendGroupMessage(group, MessageChain.join(
+                MessageChain.create([Plain('dynamic关注id列表:\n')]),
+                MessageChain.create([Plain(i+'\n') for i in add_list])
+                ))
         else:
-            await app.sendGroupMessage(group, MessageChain.create([Plain('参数有误')]))
+            await app.sendGroupMessage(group, MessageChain.create([Plain('没有关注任何人')]))
+
+    elif list[1] == '--add-live' and len(list) > 2 and list[2].isdigit():
+        if list[2] not in group_dict['live']:
+            group_dict['live'][list[2]] = []
+            Thread(target=live_thread,args=(list[2],)).start()
+        if group.id not in group_dict['live'][list[2]]:
+            group_dict['live'][list[2]].append(group.id)
+        await app.sendGroupMessage(group, MessageChain.create([Plain('关注成功')]))
+        update()
+    elif list[1] == '--remove-live' and len(list) > 2 and list[2].isdigit():
+        if list[2] in group_dict['live'].keys() and group.id in group_dict['live'][list[2]]:
+            group_dict['live'][list[2]].remove(group.id)
+            update()
+        await app.sendGroupMessage(group, MessageChain.create([Plain('移除成功')]))
+    elif list[1] == '--list-live':
+        add_list = []
+        for i in group_dict['live'].keys():
+            if group.id in group_dict['live'][i]:
+                add_list.append(i)
+        if len(add_list):
+            await app.sendGroupMessage(group, MessageChain.join(
+                MessageChain.create([Plain('live关注id列表:\n')]),
+                MessageChain.create([Plain(i+'\n') for i in add_list])
+                ))
+        else:
+            await app.sendGroupMessage(group, MessageChain.create([Plain('没有关注任何人')]))
+
+    else:
+        await app.sendGroupMessage(group, MessageChain.create([Plain('参数有误')]))
 
 
 def dynamic_thread(uid):
