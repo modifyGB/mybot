@@ -132,4 +132,5 @@ dmypy.json
 .vscode
 .idea
 setting/*_setting.py
-config
+config/
+tmp/

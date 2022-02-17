@@ -19,6 +19,8 @@ from setting.bot_setting import delay_time
 if os.path.exists('config/bili_monitor/setting.json') == False:
     os.makedirs('config/bili_monitor')
     open('config/bili_monitor/setting.json','w').write(r'{"dynamic":{},"live":{}}')
+if os.path.exists('tmp/bili_monitor/') == False:
+    os.makedirs('tmp/bili_monitor/')
 with open('config/bili_monitor/setting.json','r+') as file:
     group_dict = json.loads(file.read())
 
@@ -243,12 +245,12 @@ def update():
 
 def download(url):
     path = hashlib.md5(url.encode('utf-8')).hexdigest()
-    if os.path.exists('data/bili_monitor') == False:
-        os.makedirs('data/bili_monitor')
+    if os.path.exists('tmp/bili_monitor') == False:
+        os.makedirs('tmp/bili_monitor')
     try:
-        with open('data/bili_monitor/'+path,'wb+') as file:
+        with open('tmp/bili_monitor/'+path,'wb+') as file:
             file.write(requests.get(url).content)
-        return 'data/bili_monitor/'+path
+        return 'tmp/bili_monitor/'+path
     except Exception:
         print('图片下载出错')
         return None
