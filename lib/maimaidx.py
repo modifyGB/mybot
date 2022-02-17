@@ -4,7 +4,7 @@ Version: 1.0
 Autor: Renhetian
 Date: 2022-02-17 17:56:19
 LastEditors: Renhetian
-LastEditTime: 2022-02-17 22:06:43
+LastEditTime: 2022-02-17 23:00:57
 '''
 
 from collections import defaultdict
@@ -12,7 +12,7 @@ import re
 
 from graia.ariadne.message.chain import MessageChain
 from graia.ariadne.message.element import Plain, Image as GraiaImage
-from graia.ariadne.message.parser.base import DetectPrefix, DetectSuffix, MatchRegex
+from graia.ariadne.message.parser.base import DetectPrefix, DetectSuffix, MatchContent, MatchRegex
 from graia.ariadne.model import Group, Member
 
 from lib.app import *
@@ -162,82 +162,121 @@ async def what_song(message: MessageChain, app: Ariadne, group: Group, member: M
             ]))
 
 
-# @bcc.receiver("GroupMessage", decorators=[MatchRegex(regex=r"^([绿黄红紫白]?)id([0-9]+)")])
-# async def what_song(message: MessageChain, app: Ariadne, group: Group, member: Member):
-#     regex = "([绿黄红紫白]?)id([0-9]+)"
-#     groups = re.match(regex, str(event.get_message())).groups()
-#     level_labels = ['绿', '黄', '红', '紫', '白']
-#     if groups[0] != "":
-#         try:
-#             level_index = level_labels.index(groups[0])
-#             level_name = ['Basic', 'Advanced', 'Expert', 'Master', 'Re: MASTER']
-#             name = groups[1]
-#             music = total_list.by_id(name)
-#             chart = music['charts'][level_index]
-#             ds = music['ds'][level_index]
-#             level = music['level'][level_index]
-#             file = f"https://www.diving-fish.com/covers/{music['id']}.jpg"
-#             if len(chart['notes']) == 4:
-#                 msg = f'''{level_name[level_index]} {level}({ds})
-# TAP: {chart['notes'][0]}
-# HOLD: {chart['notes'][1]}
-# SLIDE: {chart['notes'][2]}
-# BREAK: {chart['notes'][3]}
-# 谱师: {chart['charter']}'''
-#             else:
-#                 msg = f'''{level_name[level_index]} {level}({ds})
-# TAP: {chart['notes'][0]}
-# HOLD: {chart['notes'][1]}
-# SLIDE: {chart['notes'][2]}
-# TOUCH: {chart['notes'][3]}
-# BREAK: {chart['notes'][4]}
-# 谱师: {chart['charter']}'''
-#             await query_chart.send(Message([
-#                 {
-#                     "type": "text",
-#                     "data": {
-#                         "text": f"{music['id']}. {music['title']}\n"
-#                     }
-#                 },
-#                 {
-#                     "type": "image",
-#                     "data": {
-#                         "file": f"{file}"
-#                     }
-#                 },
-#                 {
-#                     "type": "text",
-#                     "data": {
-#                         "text": msg
-#                     }
-#                 }
-#             ]))
-#         except Exception:
-#             await query_chart.send("未找到该谱面")
-#     else:
-#         name = groups[1]
-#         music = total_list.by_id(name)
-#         try:
-#             file = f"https://www.diving-fish.com/covers/{music['id']}.jpg"
-#             await query_chart.send(Message([
-#                 {
-#                     "type": "text",
-#                     "data": {
-#                         "text": f"{music['id']}. {music['title']}\n"
-#                     }
-#                 },
-#                 {
-#                     "type": "image",
-#                     "data": {
-#                         "file": f"{file}"
-#                     }
-#                 },
-#                 {
-#                     "type": "text",
-#                     "data": {
-#                         "text": f"艺术家: {music['basic_info']['artist']}\n分类: {music['basic_info']['genre']}\nBPM: {music['basic_info']['bpm']}\n版本: {music['basic_info']['from']}\n难度: {'/'.join(music['level'])}"
-#                     }
-#                 }
-#             ]))
-#         except Exception:
-#             await query_chart.send("未找到该乐曲")
+@bcc.receiver("GroupMessage", decorators=[MatchRegex(regex=r"/maimai ^([绿黄红紫白]?)id([0-9]+)")])
+async def chage(message: MessageChain, app: Ariadne, group: Group, member: Member):
+    regex = r"([绿黄红紫白]?)id([0-9]+)"
+    groups = re.match(regex, message.asDisplay()).groups()
+    level_labels = ['绿', '黄', '红', '紫', '白']
+    if groups[0] != "":
+        try:
+            level_index = level_labels.index(groups[0])
+            level_name = ['Basic', 'Advanced', 'Expert', 'Master', 'Re: MASTER']
+            name = groups[1]
+            music = total_list.by_id(name)
+            chart = music['charts'][level_index]
+            ds = music['ds'][level_index]
+            level = music['level'][level_index]
+            file = f"https://www.diving-fish.com/covers/{music['id']}.jpg"
+            if len(chart['notes']) == 4:
+                msg = f'''{level_name[level_index]} {level}({ds})
+                        TAP: {chart['notes'][0]}
+                        HOLD: {chart['notes'][1]}
+                        SLIDE: {chart['notes'][2]}
+                        BREAK: {chart['notes'][3]}
+                        谱师: {chart['charter']}'''
+            else:
+                msg = f'''{level_name[level_index]} {level}({ds})
+                        TAP: {chart['notes'][0]}
+                        HOLD: {chart['notes'][1]}
+                        SLIDE: {chart['notes'][2]}
+                        TOUCH: {chart['notes'][3]}
+                        BREAK: {chart['notes'][4]}
+                        谱师: {chart['charter']}'''
+            await app.sendGroupMessage(group, MessageChain.create([
+                Plain(f"{music['id']}. {music['title']}\n"),
+                GraiaImage(url=file),
+                Plain(msg)
+            ]))
+        except Exception:
+            await app.sendGroupMessage(group, MessageChain.create([
+                Plain("未找到该谱面")
+            ]))
+    else:
+        name = groups[1]
+        music = total_list.by_id(name)
+        try:
+            file = f"https://www.diving-fish.com/covers/{music['id']}.jpg"
+            await app.sendGroupMessage(group, MessageChain.create([
+                Plain(f"{music['id']}. {music['title']}\n"),
+                GraiaImage(url=file),
+                Plain(f"艺术家: {music['basic_info']['artist']}\n分类: {music['basic_info']['genre']}\nBPM: {music['basic_info']['bpm']}\n版本: {music['basic_info']['from']}\n难度: {'/'.join(music['level'])}")
+            ]))
+        except Exception:
+            await app.sendGroupMessage(group, MessageChain.create([
+                Plain("未找到该乐曲")
+            ]))
+
+
+@bcc.receiver("GroupMessage", decorators=[MatchContent('今日舞萌')])
+async def choub(message: MessageChain, app: Ariadne, group: Group, member: Member):
+    await app.sendGroupMessage(group, MessageChain.create([
+            Plain("mai你🐎个臭b")
+        ]))
+
+
+@bcc.receiver("GroupMessage", decorators=[MatchRegex(regex=r"^/maimai 查歌.+")])
+async def chage2(message: MessageChain, app: Ariadne, group: Group, member: Member):
+    regex = "查歌(.+)"
+    name = re.match(regex, str(message.asDisplay())).groups()[0].strip()
+    if name == "":
+        return
+    res = total_list.filter(title_search=name)
+    if len(res) == 0:
+        await app.sendGroupMessage(group, MessageChain.create([
+            Plain("没有找到这样的乐曲。")
+        ]))
+    elif len(res) < 50:
+        search_result = ""
+        for music in sorted(res, key = lambda i: int(i['id'])):
+            search_result += f"{music['id']}. {music['title']}\n"
+        await app.sendGroupMessage(group, MessageChain.create([
+            Plain(search_result.strip())
+        ]))
+    else:
+        await app.sendGroupMessage(group, MessageChain.create([
+            Plain(f"结果过多（{len(res)} 条），请缩小查询范围。")
+        ]))
+
+
+@bcc.receiver("GroupMessage", decorators=[MatchRegex(regex=r"^/maimai 随个(?:dx|sd|标准)?[绿黄红紫白]?[0-9]+\+?")])
+async def fenshuxian(message: MessageChain, app: Ariadne, group: Group, member: Member):
+    regex = r"随个((?:dx|sd|标准))?([绿黄红紫白]?)([0-9]+\+?)"
+    res = re.match(regex, message.asDisplay().lower())
+    try:
+        if res.groups()[0] == "dx":
+            tp = ["DX"]
+        elif res.groups()[0] == "sd" or res.groups()[0] == "标准":
+            tp = ["SD"]
+        else:
+            tp = ["SD", "DX"]
+        level = res.groups()[2]
+        if res.groups()[1] == "":
+            music_data = total_list.filter(level=level, type=tp)
+        else:
+            music_data = total_list.filter(level=level, diff=['绿黄红紫白'.index(res.groups()[1])], type=tp)
+        if len(music_data) == 0:
+            await app.sendGroupMessage(group, MessageChain.create([
+                Plain("没有这样的乐曲哦。"),
+            ]))
+        else:
+            music = music_data.random()
+            await app.sendGroupMessage(group, MessageChain.create([
+                Plain(f"{music.id}. {music.title}\n"),
+                GraiaImage(url=f"https://www.diving-fish.com/covers/{music.id}.jpg"),
+                Plain(f"\n{'/'.join(music.level)}"),
+            ]))
+    except Exception as e:
+        print(e)
+        await app.sendGroupMessage(group, MessageChain.create([
+                Plain("随机命令错误，请检查语法"),
+            ]))
