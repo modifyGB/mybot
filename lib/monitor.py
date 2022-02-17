@@ -1,14 +1,13 @@
 from threading import Thread
 import requests
 import hashlib
-import asyncio
 import json
 import time
 import os
 
 from graia.ariadne.app import Ariadne
 from graia.ariadne.message.chain import MessageChain
-from graia.ariadne.message.element import Plain, Image, At
+from graia.ariadne.message.element import Plain, Image
 from graia.ariadne.model import Group, Member
 from graia.ariadne.message.parser.base import DetectPrefix
 
@@ -106,7 +105,7 @@ async def live(event: LiveEvent):
 
 
 @bcc.receiver("GroupMessage", decorators=[DetectPrefix('/monitor')])
-async def group_message_handler(message: MessageChain, app: Ariadne, group: Group, member: Member):
+async def monitor_handle(message: MessageChain, app: Ariadne, group: Group, member: Member):
     list = message.asDisplay().split(' ')
     if len(list) == 1:
         await app.sendGroupMessage(group, MessageChain.create([
