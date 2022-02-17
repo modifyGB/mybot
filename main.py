@@ -4,7 +4,7 @@ Version: 1.0
 Autor: Renhetian
 Date: 2022-02-17 14:35:10
 LastEditors: Renhetian
-LastEditTime: 2022-02-17 17:57:49
+LastEditTime: 2022-02-17 22:15:07
 '''
 
 from setting.bot_setting import *
