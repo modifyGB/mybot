@@ -184,7 +184,7 @@ def dynamic_thread(uid):
     url = 'https://api.vc.bilibili.com/dynamic_svr/v1/dynamic_svr/space_history?host_uid=' + uid
     res = requests.get(url)
     if res.status_code == 200:
-        last_dynamic_time = json.loads(res.content.decode('utf-8'))['data']['cards'][0]['desc']['timestamp']
+        last_dynamic_time = json.loads(res.text)['data']['cards'][0]['desc']['timestamp']
     else:
         print('dynamic error: '+str(res.status_code)+' id: '+uid)
         print('dynamic监听器结束运行 id:'+uid)
@@ -199,7 +199,7 @@ def dynamic_thread(uid):
             break
         res = requests.get(url)
         if res.status_code == 200:
-            js = json.loads(res.content.decode('utf-8'))
+            js = json.loads(res.text)
             if last_dynamic_time < js['data']['cards'][0]['desc']['timestamp']:
                 for i in js['data']['cards']:
                     if i['desc']['timestamp'] <= last_dynamic_time:
@@ -226,7 +226,7 @@ def live_thread(uid):
             break
         res = requests.get(url)
         if res.status_code == 200:
-            js = json.loads(requests.get(url))['data']
+            js = json.loads(res.text)['data']
             if is_live == 0 and js['live_room']['liveStatus'] == 1 and js['live_room']['roundStatus'] == 0:
                 bcc.postEvent(LiveEvent(uid,js))
             is_live = js['live_room']['liveStatus']
