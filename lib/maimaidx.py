@@ -4,7 +4,7 @@ Version: 1.0
 Autor: Renhetian
 Date: 2022-02-17 17:56:19
 LastEditors: Renhetian
-LastEditTime: 2022-02-17 23:13:50
+LastEditTime: 2022-02-17 23:32:37
 '''
 
 from collections import defaultdict
@@ -226,8 +226,8 @@ async def choub(message: MessageChain, app: Ariadne, group: Group, member: Membe
 
 @bcc.receiver("GroupMessage", decorators=[MatchRegex(regex=r"^/maimai 查歌 .+")])
 async def chage2(message: MessageChain, app: Ariadne, group: Group, member: Member):
-    regex = "查歌 (.+)"
-    name = re.match(regex, str(message.asDisplay())).groups()[0].strip()
+    regex = r"查歌 (.+)"
+    name = re.findall(regex, message.asDisplay())[0].strip()
     if name == "":
         return
     res = total_list.filter(title_search=name)
@@ -250,20 +250,22 @@ async def chage2(message: MessageChain, app: Ariadne, group: Group, member: Memb
 
 @bcc.receiver("GroupMessage", decorators=[MatchRegex(regex=r"^/maimai 随个(?:dx|sd|标准)?[绿黄红紫白]?[0-9]+\+?")])
 async def suige(message: MessageChain, app: Ariadne, group: Group, member: Member):
-    regex = r"随个((?:dx|sd|标准))?([绿黄红紫白]?)([0-9]+\+?)"
-    res = re.match(regex, message.asDisplay().lower())
+    level_labels = ['绿', '黄', '红', '紫', '白']
+    print(message.asDisplay().lower())
+    regex = r"随个(dx|sd|标准)?([绿黄红紫白]?)([0-9]+\+?)"
+    res = re.findall(regex, message.asDisplay().lower())[0]
     try:
-        if res.groups()[0] == "dx":
+        if res[0] == "dx":
             tp = ["DX"]
-        elif res.groups()[0] == "sd" or res.groups()[0] == "标准":
+        elif res[0] == "sd" or res[0] == "标准":
             tp = ["SD"]
         else:
             tp = ["SD", "DX"]
-        level = res.groups()[2]
-        if res.groups()[1] == "":
+        level = res[2]
+        if res[1] == "":
             music_data = total_list.filter(level=level, type=tp)
         else:
-            music_data = total_list.filter(level=level, diff=['绿黄红紫白'.index(res.groups()[1])], type=tp)
+            music_data = total_list.filter(level=level, diff=['绿黄红紫白'.index(res[1])], type=tp)
         if len(music_data) == 0:
             await app.sendGroupMessage(group, MessageChain.create([
                 Plain("没有这样的乐曲哦。"),
@@ -276,7 +278,6 @@ async def suige(message: MessageChain, app: Ariadne, group: Group, member: Membe
                 Plain(f"\n{'/'.join(music.level)}"),
             ]))
     except Exception as e:
-        print(e)
         await app.sendGroupMessage(group, MessageChain.create([
-                Plain("随机命令错误，请检查语法"),
+                Plain("随机命令错误 ==> {}".format(e)),
             ]))
